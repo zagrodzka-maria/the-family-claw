@@ -1,0 +1,8 @@
+{
+  "id": "coordination-injector",
+  "name": "Coordination Context Injector",
+  "description": "Injects COORDINATION.md into every agent turn via appendSystemContext",
+  "version": "1.0.0",
+  "entry": "./index.js",
+  "configSchema": {}
+}

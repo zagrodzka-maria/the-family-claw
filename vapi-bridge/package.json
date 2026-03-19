@@ -1,0 +1,10 @@
+{
+  "name": "vapi-bridge",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Bridge server: Vapi voice → OpenClaw embedded agent",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
