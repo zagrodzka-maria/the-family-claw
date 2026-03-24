@@ -4,9 +4,11 @@
   <img src="https://zagrodzka-maria.github.io/the-family-claw/demo/thefamily.PNG" width="600" />
 </p>
 
-A live multi-agent family system built on [OpenClaw](https://openclaw.ai) and Claude Sonnet 4.6. Two AI agents — each with their own personality, communication channels, and responsibilities — coordinate to manage a real household of three humans and a dog.
+A live multi-agent family system built on [OpenClaw](https://openclaw.ai) and Claude Sonnet 4.6. Three AI agents — each with their own personality, communication channels, and responsibilities — coordinate to manage a real household of three humans and a dog.
 
 This isn't a prototype. It runs 24/7 on a Mac Mini M2 in Oakland, CA.
+
+> **March 24, 2026 — Welcome, Sadie.** Julia's agent is live. The family now runs three agents: Elvis (household manager), Gargunk (Anna's academic wingmate), and Sadie (Julia's college & career support). Updated family portrait coming soon.
 
 ## What Makes This Different
 
@@ -221,12 +223,12 @@ the-family-claw/
 └── examples/                        # Sanitized agent personality files
     ├── elvis-SOUL.md
     ├── gargunk-SOUL.md
+    ├── sadie-SOUL.md
     └── AGENTS.md
 ```
 
 ## What's Next
 
-- **Julia's Agent** (next week) — Julia's home from college for spring break. Same concept as Gargunk but tuned for a college freshman: part-time jobs, internships, course planning, plus the usual school stuff. Third agent in the family, same coordination infrastructure.
 - **Finance Agent** — Personal finance manager for the household. The interesting part: it plugs into the existing agent-to-agent coordination. Elvis is about to order a new appliance? He checks with the finance agent first — "hey, have we budgeted for this? what's our price range?" — and surfaces a recommendation for Maria to review before anything gets purchased.
 - **More agents planned** — Career, social, and specialized agents as the family's needs evolve. The coordination infrastructure scales — each new agent joins the same shared context and communication layer on day one.
 
