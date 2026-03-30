@@ -82,7 +82,7 @@ Gargunk: "Yeah and I'm going to bug her about that AP Stats review she's been av
 
 ### Why not just tell the agents to take turns?
 
-We tried. The agents have no mechanism to coordinate timing — they can't see each other's responses in Telegram (platform limitation), and they all start processing the moment the webhook arrives. Prompt instructions like "wait for Elvis to respond first" don't work when the agent has no way to know whether Elvis has responded. The orchestration has to happen at the infrastructure level, not the prompt level.
+The agents have no mechanism to coordinate timing — they can't see each other's responses in Telegram (platform limitation), and they all start processing the moment the webhook arrives. Prompt instructions like "wait for Elvis to respond first" wouldn't work when the agent has no way to know whether Elvis has responded. The orchestration has to happen at the infrastructure level, not the prompt level.
 
 ## Agent-to-Agent Communication
 
