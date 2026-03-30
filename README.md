@@ -6,23 +6,26 @@
 
 A live multi-agent family system built on [OpenClaw](https://openclaw.ai) and Claude Sonnet 4.6. Three AI agents — each with their own personality, communication channels, and responsibilities — coordinate to manage a real household of three humans and a dog.
 
-This isn't a prototype. It runs 24/7 on a Mac Mini M2 in Oakland, CA.
+This isn't a prototype. It runs 24/7 on a Mac Mini M2 in Oakland, CA. Everything in this repo is real code running in production. The [commit history](https://github.com/zagrodzka-maria/the-family-claw/commits/main) is the build log.
 
-> **March 24, 2026 — Welcome, Sadie.** Julia's agent is live. The family now runs three agents: Elvis (household manager), Gargunk (Anna's academic wingmate), and Sadie (Julia's college & career support). Updated family portrait coming soon.
+> **March 27, 2026 — Group chat orchestration.** When all three agents share a Telegram group, they no longer triple-reply. A custom plugin sequences responses so each agent sees what came before and decides whether to add something or stay quiet. Details in [ORCHESTRATION.md](ORCHESTRATION.md).
+
+> **March 24, 2026 — Welcome, Sadie.** Julia's agent is live. The family now runs three agents: Elvis (household manager), Gargunk (Anna's academic wingmate), and Sadie (Julia's college & career support).
 
 ## What Makes This Different
 
 **Most personal AI agents are single-brain, single-channel, single-person.** This is a family of agents that talk to each other, share context across isolated sessions, make phone calls, place Amazon orders, and manage payments — all while maintaining separate identities and respecting privacy boundaries between family members.
 
-Three things that set this apart:
+Four things that set this apart:
 
 1. **Per-person family agents with agent-to-agent coordination** — Not a single AI shared by everyone. Each family member has their own agent with its own personality and channels, and the agents coordinate through shared context and cross-agent messaging
-2. **Cross-session context via custom plugin** — Addresses a common pain point in the OpenClaw community (issues [#24832](https://github.com/openclaw/openclaw/issues/24832), [#37667](https://github.com/openclaw/openclaw/issues/37667), [#9264](https://github.com/openclaw/openclaw/issues/9264)) with a 23-line plugin
+2. **Cross-session context and group orchestration** — Custom plugins solve two common OpenClaw pain points: isolated sessions that can't share context ([#24832](https://github.com/openclaw/openclaw/issues/24832), [#37667](https://github.com/openclaw/openclaw/issues/37667), [#9264](https://github.com/openclaw/openclaw/issues/9264)), and multi-agent group chats where everyone talks over each other. See [ORCHESTRATION.md](ORCHESTRATION.md).
 3. **End-to-end voice-to-action orchestration** — A single phone call can trigger Amazon orders, agent-to-agent delegation, Telegram messages, and calendar updates — across multiple agents and channels
+4. **Everything here is what's running** — No private code, no secret sauce. The infrastructure, plugins, and bridge code in this repo are the same files running on the Mac Mini. If you're building something similar, take what's useful.
 
 ## See It in Action
 
-> ### [▶ Watch the demo video (90 sec)](https://youtu.be/DiERIks1ULA)
+> ### [▶ Watch the demo video (90 sec)](https://youtu.be/N2DLDer8OmU)
 > A single voice call triggers Amazon orders, agent-to-agent delegation, and Telegram messages across the family.
 
 Gargunk and Anna — real conversations, real personality:
@@ -57,6 +60,19 @@ A teenager's personal assistant. Bratty, sarcastic, thick-skinned — designed t
 - Email via Gmail
 - Communicates via Telegram DMs and family group chat
 - Receives delegated tasks from Elvis (e.g., "check in with Anna about summer plans")
+- Collaborates with Sadie on cross-sibling coordination (summer opportunities, shared logistics)
+
+### 🌊 Sadie — College & Career Support
+*Low-key. Competent. Not trying too hard.*
+
+A college student's agent. The user is skeptical about the whole agent concept — she prefers ChatGPT because it's not "personified." Sadie is designed to demonstrate value without being eager or pushy.
+
+- Summer jobs and internships (high priority — Sadie leads the search, presents curated options, tracks applications)
+- Academic support: course planning, major exploration, study strategies
+- Collaborates with Gargunk on sibling logistics (summer opportunities, schedules, shared chores)
+- Can message Maria directly when it makes sense — not required to go through Elvis for everything
+- Communicates via Telegram DMs and family group chat
+- Named by the user herself
 
 ## Architecture
 
@@ -73,21 +89,29 @@ A teenager's personal assistant. Bratty, sarcastic, thick-skinned — designed t
 │                    OPENCLAW GATEWAY                           │
 │              (port 18789, loopback, token auth)               │
 │                                                              │
-│  ┌─────────────────┐          ┌─────────────────┐           │
-│  │     ELVIS        │◄────────►│    GARGUNK       │           │
-│  │  (main agent)    │ sessions │ (Anna's agent)   │           │
-│  │                  │  _send   │                  │           │
-│  │ Telegram DMs     │          │ Telegram DMs     │           │
-│  │ Group Chat       │          │ Group Chat       │           │
-│  │ Voice Sessions   │          │ Email (Gmail)    │           │
-│  │ Browser (Chrome) │          │ Browser (Chrome) │           │
-│  │ Payments (API)   │          │                  │           │
-│  └────────┬─────────┘          └────────┬─────────┘           │
-│           │                             │                    │
-│  ┌────────▼─────────────────────────────▼─────────┐          │
-│  │          SHARED COORDINATION.MD                 │          │
-│  │   (auto-injected into every session via plugin) │          │
-│  └─────────────────────────────────────────────────┘          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │    ELVIS      │  │   GARGUNK    │  │    SADIE     │       │
+│  │ (household)   │  │  (Anna's)    │  │  (Julia's)   │       │
+│  │               │  │              │  │              │       │
+│  │ Telegram DMs  │  │ Telegram DMs │  │ Telegram DMs │       │
+│  │ Group Chat    │  │ Group Chat   │  │ Group Chat   │       │
+│  │ Voice Calls   │  │ Email (Gmail)│  │ Email (Gmail)│       │
+│  │ Browser       │  │ Browser      │  │ Browser      │       │
+│  │ Payments      │  │              │  │              │       │
+│  └──────┬────┬───┘  └──────┬───────┘  └──────┬───────┘       │
+│         │    │  sessions   │   sessions       │              │
+│         │    └────_send────┤────_send──────────┘              │
+│         │                  │                                 │
+│  ┌──────▼──────────────────▼──────────────────────────┐      │
+│  │            SHARED COORDINATION.MD                   │      │
+│  │  (auto-injected into every session via plugin)      │      │
+│  └────────────────────────────────────────────────────┘      │
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐      │
+│  │          GROUP CHAT ORCHESTRATOR                    │      │
+│  │  (sequences responses so agents don't talk over     │      │
+│  │   each other — see ORCHESTRATION.md)                │      │
+│  └────────────────────────────────────────────────────┘      │
 └──────────────────────────────────────────────────────────────┘
                │
 ┌──────────────▼───────────────────────────────────────────────┐
@@ -98,13 +122,15 @@ A teenager's personal assistant. Bratty, sarcastic, thick-skinned — designed t
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## How Cross-Session Context Works
+## How Agents Coordinate
 
-OpenClaw sessions are isolated by design — a DM with Maria, a DM with Anna, the family group chat, and a voice call are all separate sessions with no shared history. This is a [common pain point](https://github.com/openclaw/openclaw/issues/24832) in the OpenClaw community.
+OpenClaw sessions are isolated by design — a DM with Maria, a DM with Anna, the family group chat, and a voice call are all separate sessions with no shared history. And when multiple agents share a Telegram group, they all receive each message independently and respond simultaneously with no awareness of each other's replies.
 
-Our solution: a **23-line custom plugin** ([coordination-injector](extensions/coordination-injector/index.js)) that hooks into `before_prompt_build` and injects a shared `COORDINATION.md` file into every agent turn. Both agents read from and write to the same file with append-only rules — agents can add entries and update their own, but never edit another agent's entries.
+We solve both problems with custom plugins. For the full technical details, see [ORCHESTRATION.md](ORCHESTRATION.md).
 
-Result: Elvis learns something on a voice call with Maria → writes it to COORDINATION.md → Gargunk sees it in his next Telegram conversation with the teenager. No polling, no API calls, no database. Just a file and a plugin.
+**Cross-session context:** A [23-line plugin](extensions/coordination-injector/index.js) hooks into `before_prompt_build` and injects a shared `COORDINATION.md` file into every agent turn. All three agents read from and write to the same file with append-only rules. Elvis learns something on a voice call → writes it to COORDINATION.md → Gargunk and Sadie see it in their next conversations. No polling, no API calls, no database. Just a file and a plugin.
+
+**Group chat orchestration:** Telegram doesn't forward bot messages to other bots' webhooks — so when three agents share a group chat, they all process independently and respond simultaneously with no awareness of each other. A [custom plugin](extensions/group-orchestrator/index.js) fixes this: it determines who should respond first (by name mention, topic, or default to Elvis), lets the primary respond, cancels the others, then re-triggers them sequentially with full context of what's been said. Each follow-up agent decides whether to add something or stay silent. The result: a natural conversation instead of three bots saying the same thing at the same time.
 
 ## How Agent-to-Agent Communication Works
 
@@ -177,6 +203,8 @@ The foundational security decision: the agents live in their own world. They run
 
 Everything below is defense-in-depth on top of that separation:
 
+- **Workspace isolation** — `workspaceOnly: true` restricts each agent to reading and writing files within its own workspace directory. Shared writes go through a plugin-provided `coordination_write` tool that runs server-side. Agents cannot access each other's workspaces or system files.
+- **Tool deny lists** — Shell access (`group:runtime`) and gateway reconfiguration (`gateway`) are denied globally. Agents cannot execute arbitrary commands or change their own configuration. Sensitive tools like `cron` are restricted to recognized owner accounts.
 - **Network isolation** — The gateway binds to loopback only. Remote access is via Tailscale SSH tunnel (WireGuard-encrypted, no port forwarding to the public internet). macOS firewall is on with stealth mode.
 - **Token authentication** — All gateway requests require a bearer token. The vapi-bridge authenticates with a separate credential. Device identity (Ed25519 key pair) is required for privileged operations like cross-agent session injection.
 - **Payment guardrails** — The [privacy-pay proxy](extensions/privacy-pay/server.js) strips PAN and CVV from all API responses so the LLM never sees full card numbers. Card creation is disabled server-side (403) — only the human can create cards. Cards are merchant-locked (e.g., Amazon-only) with monthly spending limits.
@@ -184,6 +212,7 @@ Everything below is defense-in-depth on top of that separation:
 - **Session privacy** — DM sessions are isolated per person per channel. Anna's conversations with Gargunk are private from the parent. Agents cannot read other agents' sessions — only write to them via explicit `sessions_send`.
 - **Credential separation** — API keys live in config files on the Mac Mini (chmod 600), not in agent workspace files or this repo. The `.openclaw` directory is chmod 700 under a dedicated standard user separate from the admin account.
 - **Phone allowlist** — Inbound voice calls are restricted to a configured allowlist. Unknown callers cannot reach the agents.
+- **Automated security sweep** — A daily script scans workspace files for leaked secrets, suspicious URLs, prompt injection patterns, unauthorized cron jobs, transaction anomalies, and file permission changes. Alerts are delivered via Telegram.
 
 For a more detailed discussion of the threat model and mitigations, see [SECURITY.md](SECURITY.md).
 
@@ -211,8 +240,12 @@ the-family-claw/
 ├── README.md
 ├── SECURITY.md                      # Threat model and mitigations
 ├── VOICE.md                         # How voice calls work (deep dive)
+├── ORCHESTRATION.md                 # Cross-session context & group chat orchestration
 ├── extensions/
 │   ├── coordination-injector/       # Cross-session context plugin (23 lines)
+│   │   ├── index.js
+│   │   └── openclaw.plugin.json
+│   ├── group-orchestrator/          # Group chat response sequencing
 │   │   ├── index.js
 │   │   └── openclaw.plugin.json
 │   └── privacy-pay/                 # Payment card API proxy
@@ -229,8 +262,8 @@ the-family-claw/
 
 ## What's Next
 
-- **Finance Agent** — Personal finance manager for the household. The interesting part: it plugs into the existing agent-to-agent coordination. Elvis is about to order a new appliance? He checks with the finance agent first — "hey, have we budgeted for this? what's our price range?" — and surfaces a recommendation for Maria to review before anything gets purchased.
-- **More agents planned** — Career, social, and specialized agents as the family's needs evolve. The coordination infrastructure scales — each new agent joins the same shared context and communication layer on day one.
+- **Outbound voice calls** — Elvis currently receives calls. Next: Elvis calls Maria when he has a question or needs a decision. Pre-loaded context means no mid-call latency from tool lookups.
+- **More agents** — Finance, research, and specialized agents as the family's needs evolve. The coordination infrastructure scales — each new agent joins the same shared context and communication layer on day one.
 
 ## Built By
 

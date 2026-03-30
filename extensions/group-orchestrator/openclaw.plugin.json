@@ -1,0 +1,8 @@
+{
+  "id": "group-orchestrator",
+  "name": "Group Chat Orchestrator",
+  "description": "Sequences multi-agent group chat responses so each agent sees what came before, producing natural conversation flow instead of simultaneous identical replies",
+  "version": "1.0.0",
+  "entry": "./index.js",
+  "configSchema": {}
+}

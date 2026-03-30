@@ -20,8 +20,7 @@ This system gives LLM-powered agents access to: payment cards, email accounts, b
 2. **Credential exposure** — The agent leaks API keys, card numbers, or passwords in a message, log, or tool output.
 3. **Unauthorized spending** — The agent places orders or makes payments outside its approved scope.
 4. **Lateral movement** — An attacker who compromises one agent's session pivots to the other agent or to the host system.
-5. **Data leakage between family members** — One family member's private conversations become visible to another through shared context or agent-to-agent communication.
-6. **Network exposure** — The gateway or bridge services are accessible from the public internet.
+5. **Network exposure** — The gateway or bridge services are accessible from the public internet.
 
 ## Mitigations by Layer
 
@@ -39,7 +38,7 @@ This system gives LLM-powered agents access to: payment cards, email accounts, b
 |------|-----------|
 | Unauthorized gateway access | Bearer token required on every request. Token is a 48-character hex string, not derived from any public value. |
 | Privilege escalation via WebSocket | The gateway's WebSocket RPC requires Ed25519 device identity signatures (V3 format) for sensitive operations like `chat.send`. Token alone is insufficient — scopes are cleared without device identity. |
-| Vapi bridge spoofing | The bridge authenticates with a dedicated credential (`elvis-vapi-bridge-2026`) separate from the gateway token. |
+| Vapi bridge spoofing | The bridge authenticates with a dedicated credential separate from the gateway token. |
 
 ### Payments
 
@@ -87,9 +86,8 @@ Transparency about the limits matters more than pretending they don't exist.
 
 - **Prompt injection via web content** — If an agent browses a page with adversarial content, the LLM could be manipulated into unexpected actions. The spending guardrails (merchant lock, monthly cap) limit the blast radius, but there's no input sanitization layer between web content and the agent's reasoning. This is an industry-wide open problem.
 - **Personality-level enforcement** — The green/yellow/red action framework is a set of instructions in the system prompt. A sufficiently sophisticated prompt injection could bypass it. The hard infrastructure limits (proxy-level card creation block, merchant locks, spending caps) exist precisely because personality enforcement alone isn't sufficient.
-- **Agent memory poisoning** — If an attacker can inject content into a conversation, they could potentially influence what gets written to the agent's daily memory files or COORDINATION.md. These files persist across sessions and influence future behavior.
+- **Agent memory poisoning** — If an attacker can inject content into a conversation, they could potentially influence what gets written to the agent's daily memory files or COORDINATION.md. These files persist across sessions and influence future behavior. A daily automated sweep catches obvious injection patterns, but subtle poisoning (a slightly wrong fact, a shifted preference) requires human review or a dedicated auditing agent — both planned but not yet in place.
 - **Supply chain** — The system depends on OpenClaw, Claude API, Vapi, ElevenLabs, Telegram Bot API, Privacy.com API, and various npm packages. A compromise of any upstream dependency is outside our control.
-- **Physical access** — The Mac Mini runs in a home. Physical access to the machine bypasses all software controls.
 
 ## If Something Goes Wrong
 
