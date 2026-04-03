@@ -4,9 +4,11 @@
   <img src="https://zagrodzka-maria.github.io/the-family-claw/demo/thefamily.PNG" width="600" />
 </p>
 
-A live multi-agent family system built on [OpenClaw](https://openclaw.ai) and Claude Sonnet 4.6. Three AI agents — each with their own personality, communication channels, and responsibilities — coordinate to manage a real household of three humans and a dog.
+A live multi-agent family system built on [OpenClaw](https://openclaw.ai) and Claude Sonnet 4.6. Four AI agents — each with their own personality, communication channels, and responsibilities — coordinate to manage a real household of three humans and a dog.
 
 This isn't a prototype. It runs 24/7 on a Mac Mini M2 in Oakland, CA. Everything in this repo is real code running in production. The [commit history](https://github.com/zagrodzka-maria/the-family-claw/commits/main) is the build log.
+
+> **April 2, 2026 — Scout goes public.** The family's fourth agent is a research analyst — isolated from the other agents by design. Scout monitors the OpenClaw ecosystem, reads changelogs, evaluates community solutions, and reports to Maria with actionable recommendations. This week Scout flagged that OpenClaw 4.2 ships native cross-agent memory search, which could replace our custom coordination-injector plugin. The system is starting to improve itself.
 
 > **March 27, 2026 — Group chat orchestration.** When all three agents share a Telegram group, they no longer triple-reply. A custom plugin sequences responses so each agent sees what came before and decides whether to add something or stay quiet. Details in [ORCHESTRATION.md](ORCHESTRATION.md).
 
@@ -16,12 +18,13 @@ This isn't a prototype. It runs 24/7 on a Mac Mini M2 in Oakland, CA. Everything
 
 **Most personal AI agents are single-brain, single-channel, single-person.** This is a family of agents that talk to each other, share context across isolated sessions, make phone calls, place Amazon orders, and manage payments — all while maintaining separate identities and respecting privacy boundaries between family members.
 
-Four things that set this apart:
+Five things that set this apart:
 
 1. **Per-person family agents with agent-to-agent coordination** — Not a single AI shared by everyone. Each family member has their own agent with its own personality and channels, and the agents coordinate through shared context and cross-agent messaging
 2. **Cross-session context and group orchestration** — Custom plugins solve two common OpenClaw pain points: isolated sessions that can't share context ([#24832](https://github.com/openclaw/openclaw/issues/24832), [#37667](https://github.com/openclaw/openclaw/issues/37667), [#9264](https://github.com/openclaw/openclaw/issues/9264)), and multi-agent group chats where everyone talks over each other. See [ORCHESTRATION.md](ORCHESTRATION.md).
 3. **End-to-end voice-to-action orchestration** — A single phone call can trigger Amazon orders, agent-to-agent delegation, Telegram messages, and calendar updates — across multiple agents and channels
-4. **Everything here is what's running** — No private code, no secret sauce. The infrastructure, plugins, and bridge code in this repo are the same files running on the Mac Mini. If you're building something similar, take what's useful.
+4. **A research agent that monitors the ecosystem and recommends improvements** — Scout reads changelogs, evaluates new OpenClaw features against the family's setup, and flags when community solutions could replace custom code. The system gets better without Maria writing a line of code.
+5. **Everything here is what's running** — No private code, no secret sauce. The infrastructure, plugins, and bridge code in this repo are the same files running on the Mac Mini. If you're building something similar, take what's useful.
 
 ## See It in Action
 
@@ -74,6 +77,28 @@ A college student's agent. The user is skeptical about the whole agent concept �
 - Communicates via Telegram DMs and family group chat
 - Named by the user herself
 
+### 🔭 Scout — Research Analyst
+*Reads everything. Says only what matters.*
+
+The family's intelligence layer. Sharp, quiet, and isolated from the other agents by design.
+
+- Monitors OpenClaw releases, changelogs, community solutions, and security advisories
+- Evaluates new features against the family's existing setup and recommends whether to adopt, wait, or ignore
+- Uses a [custom browser plugin](extensions/web-render/) (Playwright) to read JavaScript-heavy pages that plain HTTP fetch can't handle
+- Delegates bulk reading to sub-agents (via `sessions_spawn`) to keep the main research context clean for synthesis
+- Reports directly to Maria via Telegram DM — does not communicate with Elvis, Gargunk, or Sadie
+- Security isolation: Scout processes the most untrusted external content (web pages, forums, search results). Keeping him disconnected from agents that have payment tools, browser sessions, and family messaging limits the blast radius if a prompt injection gets through.
+
+## How the System Improves Itself
+
+Scout's research isn't just monitoring — it feeds a continuous improvement loop. Here's a real example from this week:
+
+**April 2, 2026 — Scout's heartbeat research sweep** flagged that OpenClaw 4.2 introduced `memorySearch.qmd.extraCollections`, a native feature for cross-agent session search. This is directly relevant because we built a [custom plugin](extensions/coordination-injector/) to solve the same problem — cross-session context sharing.
+
+Scout's recommendation: evaluate whether the native feature replaces or complements the custom plugin. The native approach avoids injecting content into every turn (our current method) and instead lets agents search across each other's session history on demand. Different tradeoff — lower per-turn token cost, but requires the agent to know it should search. Scout recommended planning the upgrade to 4.2 (skipping three intermediate versions) and testing both approaches side by side.
+
+This is what continuous research looks like in practice: a new feature ships, the research agent evaluates it against the family's specific setup, and Maria gets a recommendation with context — not just "version X is available" but "here's what it means for us and whether it's worth the disruption."
+
 ## Architecture
 
 ```
@@ -102,6 +127,14 @@ A college student's agent. The user is skeptical about the whole agent concept �
 │         │    │  sessions   │   sessions       │              │
 │         │    └────_send────┤────_send──────────┘              │
 │         │                  │                                 │
+│  ┌──────────────────────────────────────────────────┐        │
+│  │              SCOUT (research analyst)             │        │
+│  │  Web Search ─ Web Fetch ─ Web Render (Playwright) │        │
+│  │  Telegram DM to Maria only ─ No agent comms      │        │
+│  │  ⚠ ISOLATED — no payments, no browser control,   │        │
+│  │    no sessions_send, no COORDINATION.md write     │        │
+│  └──────────────────────────────────────────────────┘        │
+│                                                              │
 │  ┌──────▼──────────────────▼──────────────────────────┐      │
 │  │            SHARED COORDINATION.MD                   │      │
 │  │  (auto-injected into every session via plugin)      │      │
@@ -212,6 +245,7 @@ Everything below is defense-in-depth on top of that separation:
 - **Session privacy** — DM sessions are isolated per person per channel. Anna's conversations with Gargunk are private from the parent. Agents cannot read other agents' sessions — only write to them via explicit `sessions_send`.
 - **Credential separation** — API keys live in config files on the Mac Mini (chmod 600), not in agent workspace files or this repo. The `.openclaw` directory is chmod 700 under a dedicated standard user separate from the admin account.
 - **Phone allowlist** — Inbound voice calls are restricted to a configured allowlist. Unknown callers cannot reach the agents.
+- **Research agent isolation** — Scout (the research agent) processes the most untrusted external content — web pages, forums, search results. He is deliberately disconnected from agents that have payment tools, browser sessions, and family messaging. If a prompt injection gets through web content, Scout can send annoying messages to Maria but cannot spend money, access accounts, or influence other agents. No `sessions_send`, no `coordination_write`, no payment tools, no browser control.
 - **Automated security sweep** — A daily script scans workspace files for leaked secrets, suspicious URLs, prompt injection patterns, unauthorized cron jobs, transaction anomalies, and file permission changes. Alerts are delivered via Telegram.
 
 For a more detailed discussion of the threat model and mitigations, see [SECURITY.md](SECURITY.md).
@@ -248,8 +282,11 @@ the-family-claw/
 │   ├── group-orchestrator/          # Group chat response sequencing
 │   │   ├── index.js
 │   │   └── openclaw.plugin.json
-│   └── privacy-pay/                 # Payment card API proxy
-│       └── server.js
+│   ├── privacy-pay/                 # Payment card API proxy
+│   │   └── server.js
+│   └── web-render/                  # Playwright page fetcher for research agents
+│       ├── index.js
+│       └── openclaw.plugin.json
 ├── vapi-bridge/                     # Voice call → OpenClaw bridge
 │   ├── server.js
 │   └── package.json
@@ -257,13 +294,17 @@ the-family-claw/
     ├── elvis-SOUL.md
     ├── gargunk-SOUL.md
     ├── sadie-SOUL.md
+    ├── scout-SOUL.md
+    ├── scout-IDENTITY.md
     └── AGENTS.md
 ```
 
 ## What's Next
 
 - **Outbound voice calls** — Elvis currently receives calls. Next: Elvis calls Maria when he has a question or needs a decision. Pre-loaded context means no mid-call latency from tool lookups.
-- **More agents** — Finance, research, and specialized agents as the family's needs evolve. The coordination infrastructure scales — each new agent joins the same shared context and communication layer on day one.
+- **OpenClaw 4.2 upgrade** — Scout flagged that the latest release includes native cross-agent memory search. Currently evaluating whether it replaces or complements our custom coordination-injector plugin. Upgrade path planned: skip 3.31 and 4.1, go directly to 4.2.
+- **QA agent** — An operational health monitor that reads all agents' context (memory files, session transcripts, workspace files) and flags issues: stale memory, bloated sessions, agents ignoring their own notes, contradictions between agents. Think of it as the agents monitoring each other.
+- **More agents** — Finance and specialized agents as the family's needs evolve. The coordination infrastructure scales — each new agent joins the same shared context and communication layer on day one.
 
 ## Built By
 

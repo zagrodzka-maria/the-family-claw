@@ -1,0 +1,8 @@
+{
+  "id": "web-render",
+  "name": "Web Render",
+  "description": "Playwright-based page fetcher that renders JavaScript and bypasses Cloudflare challenges. Returns plain text content from URLs.",
+  "version": "1.0.0",
+  "entry": "index.js",
+  "configSchema": {}
+}
