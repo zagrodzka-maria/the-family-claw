@@ -80,6 +80,12 @@ The first version used the stock OpenClaw voice-call plugin with Telnyx handling
 
 Switching to Vapi for the audio layer while keeping OpenClaw as the brain was a turning point. Vapi handles all the real-time audio complexity (streaming STT, VAD, TTS, barge-in), and the vapi-bridge handles the latency management between Vapi's real-time expectations and OpenClaw's full-agent processing time.
 
+## Outbound calls
+
+As of April 5, 2026, Elvis can initiate outbound phone calls — not just receive them. The vapi-bridge exposes an endpoint that triggers a Vapi outbound call with Elvis's assistant configuration, voice, and personality. The call can include a topic and pre-loaded context so Elvis knows what he's calling about before you pick up.
+
+This matters because it inverts the interaction model. Instead of Maria remembering to call Elvis about something, Elvis can call Maria when he has a question, needs a decision, or wants to flag something from his morning check. The same latency management (fast path, filler phrases, post-call dispatch) applies to outbound calls — the conversation experience is identical regardless of who initiates.
+
 ## What's next
 
 - **Pre-loaded context** — Optionally text Elvis on Telegram before calling: "I'm going to call you in a few minutes, I want to go over where we are with the lost Honda title — have your notes ready." The agent pre-fetches relevant memory and research so the conversation starts informed instead of cold. This isn't required — you can always just call and ask, and Elvis will pull up his notes on the spot. It just takes a few seconds longer, the same way a human assistant can answer any question but responds faster if you gave them a heads up on the agenda.

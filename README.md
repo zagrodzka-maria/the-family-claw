@@ -8,7 +8,9 @@ A live multi-agent family system built on [OpenClaw](https://openclaw.ai) and Cl
 
 This isn't a prototype. It runs 24/7 on a Mac Mini M2 in Oakland, CA. Everything in this repo is real code running in production. The [commit history](https://github.com/zagrodzka-maria/the-family-claw/commits/main) is the build log.
 
-> **April 2, 2026 — Scout goes public.** The family's fourth agent is a research analyst — isolated from the other agents by design. Scout monitors the OpenClaw ecosystem, reads changelogs, evaluates community solutions, and reports to Maria with actionable recommendations. This week Scout flagged that OpenClaw 4.2 ships native cross-agent memory search, which could replace our custom coordination-injector plugin. The system is starting to improve itself.
+> **April 5, 2026 — Elvis can now make outbound phone calls.** Elvis can initiate calls when he has a question or needs a decision — with full context pre-loaded before dialing. Details in [VOICE.md](VOICE.md).
+
+> **April 2, 2026 — Scout goes live.** The family's fourth agent is a research analyst — isolated from the other agents by design. Scout monitors the OpenClaw ecosystem, reads changelogs, evaluates community solutions, and reports to Maria with actionable recommendations.
 
 > **March 27, 2026 — Group chat orchestration.** When all three agents share a Telegram group, they no longer triple-reply. A custom plugin sequences responses so each agent sees what came before and decides whether to add something or stay quiet. Details in [ORCHESTRATION.md](ORCHESTRATION.md).
 
@@ -23,13 +25,15 @@ Five things that set this apart:
 1. **Per-person family agents with agent-to-agent coordination** — Not a single AI shared by everyone. Each family member has their own agent with its own personality and channels, and the agents coordinate through shared context and cross-agent messaging
 2. **Cross-session context and group orchestration** — Custom plugins solve two common OpenClaw pain points: isolated sessions that can't share context ([#24832](https://github.com/openclaw/openclaw/issues/24832), [#37667](https://github.com/openclaw/openclaw/issues/37667), [#9264](https://github.com/openclaw/openclaw/issues/9264)), and multi-agent group chats where everyone talks over each other. See [ORCHESTRATION.md](ORCHESTRATION.md).
 3. **End-to-end voice-to-action orchestration** — A single phone call can trigger Amazon orders, agent-to-agent delegation, Telegram messages, and calendar updates — across multiple agents and channels
-4. **A research agent that monitors the ecosystem and recommends improvements** — Scout reads changelogs, evaluates new OpenClaw features against the family's setup, and flags when community solutions could replace custom code. The system gets better without Maria writing a line of code.
+4. **A research agent that monitors the ecosystem and recommends improvements** — Scout reads changelogs, evaluates new OpenClaw features against the family's setup, and flags when community solutions could replace custom code. Scout drives continuous improvement across the system.
 5. **Everything here is what's running** — No private code, no secret sauce. The infrastructure, plugins, and bridge code in this repo are the same files running on the Mac Mini. If you're building something similar, take what's useful.
 
 ## See It in Action
 
 > ### [▶ Watch the demo video (90 sec)](https://youtu.be/N2DLDer8OmU)
 > A single voice call triggers Amazon orders, agent-to-agent delegation, and Telegram messages across the family.
+
+> **Agent Madness 2026 — Round 3 is live.** [Vote for The Family Claw](https://www.agentmadness.ai/matchups/matchup-r3-region-3-2)
 
 Gargunk and Anna — real conversations, real personality:
 
@@ -295,21 +299,17 @@ the-family-claw/
     ├── gargunk-SOUL.md
     ├── sadie-SOUL.md
     ├── scout-SOUL.md
-    ├── scout-IDENTITY.md
     └── AGENTS.md
 ```
 
 ## What's Next
 
-- **Outbound voice calls** — Elvis currently receives calls. Next: Elvis calls Maria when he has a question or needs a decision. Pre-loaded context means no mid-call latency from tool lookups.
 - **OpenClaw 4.2 upgrade** — Scout flagged that the latest release includes native cross-agent memory search. Currently evaluating whether it replaces or complements our custom coordination-injector plugin. Upgrade path planned: skip 3.31 and 4.1, go directly to 4.2.
 - **QA agent** — An operational health monitor that reads all agents' context (memory files, session transcripts, workspace files) and flags issues: stale memory, bloated sessions, agents ignoring their own notes, contradictions between agents. Think of it as the agents monitoring each other.
 - **More agents** — Finance and specialized agents as the family's needs evolve. The coordination infrastructure scales — each new agent joins the same shared context and communication layer on day one.
 
 ## Built By
 
-Maria Zagrodzka — FP&A Director, not a developer. Built with Claude Code (Anthropic) as part of the [AI Daily Brief Claw Camp](https://aidailybrief.com) program.
-
-The whole system was built conversationally — no IDE, no framework knowledge required. Just describing what the family needed and iterating until it worked.
+Maria Zagrodzka — FP&A Director. Built with Claude Code (Anthropic) as part of the [AI Daily Brief Claw Camp](https://aidailybrief.com) program.
 
 Lead image by Anna Sears (with AI assist). Demo video edited by Anna Sears.
